@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
 import './App.css';
 
 export default function App() {
@@ -62,9 +61,12 @@ export default function App() {
           Hey there!
         </div>
         <div className="bio">Connect your Ethereum wallet and wave at me!</div>
+        <button className="waveButton" onClick={null}>
+          Wave at Me
+        </button>
         {!currentAccount && (
           <button className="waveButton" onClick={connectWallet}>
-            Wave at Me
+            Connect Wallet
           </button>
         )}
       </div>
