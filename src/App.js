@@ -6,9 +6,44 @@ import abi from './utils/WavePortal.json';
 export default function App() {
   const [currentAccount, setCurrentAccount] = useState('');
   const [totalWaves, setTotalWaves] = useState(0);
+  const [allWaves, setAllWaves] = useState([]);
+  const [message, setMessage] = useState('');
 
-  const contractAddress = '0xA9bd0Ca296D6D2EC7b046c4B9FE5502B5cE1ddDe';
+  const contractAddress = '0xC7602d66b6B8bC22AF3831904A6E86E49FD80A84';
   const contractABI = abi.abi;
+
+  const getAllWaves = async () => {
+    try {
+      const { ethereum } = window;
+      if (!ethereum) {
+        alert('Make sure you have metamask!');
+        return;
+      }
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const signer = provider.getSigner();
+      const wavePortalContract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
+
+      const waves = await wavePortalContract.getAllWaves();
+
+      let cleanedWaves = [];
+      waves.forEach((wave) => {
+        cleanedWaves.push({
+          address: wave.waver,
+          message: wave.message,
+          timestamp: new Date(wave.timestamp * 1000),
+        });
+      });
+
+      setAllWaves(cleanedWaves);
+      console.log({ allWaves })
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -28,6 +63,7 @@ export default function App() {
       } else {
         console.log('No authorized account found');
       }
+      await getAllWaves();
     } catch (error) {
       console.log(error);
     }
@@ -64,27 +100,31 @@ export default function App() {
         alert('Please connect metamask');
         return;
       }
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
-      const wavePortalContract = new ethers.Contract(
-        contractAddress,
-        contractABI,
-        signer
-      );
+      if (message) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const wavePortalContract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
 
-      let totalWaves = await wavePortalContract.getTotalWaves();
-      console.log('totalWaves', totalWaves.toNumber());
+        let totalWaves = await wavePortalContract.getTotalWaves();
+        console.log('totalWaves', totalWaves.toNumber());
 
-      const waveTxn = await wavePortalContract.wave();
-      console.log('Mining...', waveTxn.hash);
+        const waveTxn = await wavePortalContract.wave(message);
+        console.log('Mining...', waveTxn.hash);
 
-      await waveTxn.wait();
-      console.log('Mined -- ', waveTxn.hash);
-
-      totalWaves = await wavePortalContract.getTotalWaves();
-
-      console.log('totalWaves', totalWaves.toNumber());
-      setTotalWaves(totalWaves.toNumber());
+        await waveTxn.wait();
+        console.log('Mined -- ', waveTxn.hash);
+        
+        totalWaves = await wavePortalContract.getTotalWaves();
+        
+        console.log('totalWaves', totalWaves.toNumber());
+        setTotalWaves(totalWaves.toNumber());
+        setMessage('');
+        await getAllWaves();
+      }
     } catch (error) {
       console.log(error);
     }
@@ -100,6 +140,12 @@ export default function App() {
           Hey there!
         </div>
         <div className="bio">Connect your Ethereum wallet and wave at me!</div>
+        <input
+          type="text"
+          placeholder='Enter message'
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
         <button className="waveButton" onClick={wave}>
           Wave at Me
         </button>
@@ -113,6 +159,15 @@ export default function App() {
         ) : (
           ''
         )}
+
+        {allWaves.map((wave, index) => (
+          <div key={index} className="wave">
+            <div>Address: {wave.address}</div>
+            <div>Time: {wave.timestamp.toString()}</div>
+            <div>Message: {wave.message}</div>
+            <br />
+          </div>
+        ))}
       </div>
     </div>
   );
