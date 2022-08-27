@@ -101,7 +101,7 @@ export default function App() {
         return;
       }
       if (message) {
-        setIsLoading(true)
+        setIsLoading(true);
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const wavePortalContract = new ethers.Contract(
@@ -118,9 +118,9 @@ export default function App() {
 
         await waveTxn.wait();
         console.log('Mined -- ', waveTxn.hash);
-        
+
         totalWaves = await wavePortalContract.getTotalWaves();
-        
+
         console.log('totalWaves', totalWaves.toNumber());
         setTotalWaves(totalWaves.toNumber());
         setMessage('');
@@ -142,16 +142,20 @@ export default function App() {
           Hey there!
         </div>
         <div className="bio">Connect your Ethereum wallet and wave at me!</div>
-        <input
-          type="text"
-          placeholder="Enter message to send to smart contract"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          disabled={isLoading}
-        />
-        <button className="waveButton" onClick={wave} disabled={isLoading}>
-          {isLoading ? "Mining new block..." : "Wave at Me"}
-        </button>
+        {currentAccount && (
+          <>
+            <input
+              type="text"
+              placeholder="Enter message to send to smart contract"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              disabled={isLoading}
+            />
+            <button className="waveButton" onClick={wave} disabled={isLoading}>
+              {isLoading ? 'Mining new block...' : 'Wave at Me'}
+            </button>
+          </>
+        )}
         {!currentAccount && (
           <button className="waveButton" onClick={connectWallet}>
             Connect Wallet
