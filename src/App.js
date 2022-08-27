@@ -8,8 +8,9 @@ export default function App() {
   const [totalWaves, setTotalWaves] = useState(0);
   const [allWaves, setAllWaves] = useState([]);
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const contractAddress = '0xC7602d66b6B8bC22AF3831904A6E86E49FD80A84';
+  const contractAddress = '0xa61605fB7dFAf74595110685Bc7a5297292795d5';
   const contractABI = abi.abi;
 
   const getAllWaves = async () => {
@@ -39,7 +40,6 @@ export default function App() {
       });
 
       setAllWaves(cleanedWaves);
-      console.log({ allWaves })
     } catch (error) {
       console.log(error);
     }
@@ -101,6 +101,7 @@ export default function App() {
         return;
       }
       if (message) {
+        setIsLoading(true)
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const wavePortalContract = new ethers.Contract(
@@ -123,6 +124,7 @@ export default function App() {
         console.log('totalWaves', totalWaves.toNumber());
         setTotalWaves(totalWaves.toNumber());
         setMessage('');
+        setIsLoading(false);
         await getAllWaves();
       }
     } catch (error) {
@@ -142,12 +144,13 @@ export default function App() {
         <div className="bio">Connect your Ethereum wallet and wave at me!</div>
         <input
           type="text"
-          placeholder='Enter message'
+          placeholder="Enter message to send to smart contract"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          disabled={isLoading}
         />
-        <button className="waveButton" onClick={wave}>
-          Wave at Me
+        <button className="waveButton" onClick={wave} disabled={isLoading}>
+          {isLoading ? "Mining new block..." : "Wave at Me"}
         </button>
         {!currentAccount && (
           <button className="waveButton" onClick={connectWallet}>
